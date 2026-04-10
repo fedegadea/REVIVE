@@ -910,18 +910,51 @@ const mro=new IntersectionObserver(entries=>{
 },{threshold:.3})
 const mani=document.getElementById('manifesto')
 if(mani)mro.observe(mani)
-
-/* ── WAITLIST ── */
-function submitWL(){
+async function submitWL(){
   const inp=document.getElementById('wl-email')
-  if(inp.value&&inp.value.includes('@')){
-    document.getElementById('wf').style.display='none'
-    document.getElementById('ws').style.display='block'
-  } else {
+  const btn=document.querySelector('.wl-btn')
+  if(!inp.value||!inp.value.includes('@')){
     inp.style.borderColor='rgba(220,60,60,.5)'
+    setTimeout(()=>inp.style.borderColor='',1500)
+    return
+  }
+  btn.textContent='...'
+  btn.disabled=true
+  try{
+    const res=await fetch('https://awzfpweczjbjdmcrkigf.supabase.co/rest/v1/WAITLIST',{
+      method:'POST',
+      headers:{
+        'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3emZwd2VjempiamRtY3JraWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzA4MDIsImV4cCI6MjA5MTQwNjgwMn0.RppCyJZLcXsCN8B6x82n2AyyuPzmWAZNrlSJAUM4Zms',
+        'Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3emZwd2VjempiamRtY3JraWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzA4MDIsImV4cCI6MjA5MTQwNjgwMn0.RppCyJZLcXsCN8B6x82n2AyyuPzmWAZNrlSJAUM4Zms',
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify({mail:inp.value})
+    })
+    if(res.ok||res.status===201){
+      document.getElementById('wf').style.display='none'
+      document.getElementById('ws').style.display='block'
+    } else {
+      const err=await res.json()
+      if(err.code==='23505'){
+        document.getElementById('wf').style.display='none'
+        document.getElementById('ws').textContent='✓  Ya estás en la lista.'
+        document.getElementById('ws').style.display='block'
+      } else {
+        inp.style.borderColor='rgba(220,60,60,.5)'
+        btn.textContent='Anotarme'
+        btn.disabled=false
+        setTimeout(()=>inp.style.borderColor='',1500)
+      }
+    }
+  } catch(e){
+    inp.style.borderColor='rgba(220,60,60,.5)'
+    btn.textContent='Anotarme'
+    btn.disabled=false
     setTimeout(()=>inp.style.borderColor='',1500)
   }
 }
+
 document.getElementById('wl-email').addEventListener('keydown',e=>{if(e.key==='Enter')submitWL()})
 
 /* ── ANIMATED CANVAS BACKGROUND ── */
