@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REVIVE — Recovery Tools for Real Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;1,200&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --black:#060608;
+  --dark:#0e0e10;
+  --dark2:#161618;
+  --dark3:#1e1e21;
+  --gray:#2c2c30;
+  --muted:#555558;
+  --muted2:#888890;
+  --light:#d4d4d8;
+  --white:#f0f0ee;
+  --aqua:#00C4DC;
+  --aqua-mid:rgba(0,196,220,0.18);
+  --aqua-low:rgba(0,196,220,0.07);
+  --aqua-xlow:rgba(0,196,220,0.04);
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:default}
+
+/* ─── INTRO OVERLAY ─── */
+#intro{
+  position:fixed;inset:0;z-index:999;
+  background:#060608;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:all;
+  transition:opacity 1s ease, visibility 1s ease;
+}
+#intro.hide{opacity:0;visibility:hidden;pointer-events:none}
+#drop-canvas{position:absolute;inset:0;width:100%;height:100%}
+.intro-phrase{
+  position:relative;z-index:2;
+  text-align:center;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity 1s ease, transform 1s ease;
+  pointer-events:none;
+}
+.intro-phrase.show{opacity:1;transform:translateY(0)}
+.phrase-main{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(36px,6vw,72px);
+  letter-spacing:.08em;
+  color:#f0f0ee;
+  line-height:1.1;
+  margin-bottom:.75rem;
+}
+.phrase-main span{color:#00C4DC}
+.phrase-sub{
+  font-family:'DM Sans',sans-serif;
+  font-size:clamp(13px,1.4vw,15px);
+  font-weight:200;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(240,240,238,.35);
+}
+.intro-skip{
+  position:absolute;bottom:2.5rem;right:2.5rem;z-index:3;
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:300;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(240,240,238,.25);
+  cursor:pointer;border:none;background:transparent;
+  transition:color .2s;
+}
+.intro-skip:hover{color:rgba(240,240,238,.6)}
+
+/* ─── CANVAS BG ─── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 3.5rem;
+  background:rgba(6,6,8,0);
+  transition:background .4s,border-color .4s;
+  border-bottom:0.5px solid transparent;
+}
+nav.scrolled{background:rgba(6,6,8,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom-color:rgba(255,255,255,0.05)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.18em;color:var(--white);text-decoration:none;position:relative;z-index:1}
+.nav-logo em{color:var(--aqua);font-style:normal}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--black);background:var(--aqua);
+  padding:.6rem 1.6rem;border:none;cursor:pointer;
+  transition:opacity .2s,transform .15s;
+}
+.nav-cta:hover{opacity:.9;transform:translateY(-1px)}
+
+/* ─── HERO ─── */
+#hero{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 5rem;
+  overflow:hidden;
+}
+.hero-noise{
+  position:absolute;inset:0;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+.hero-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 30%,rgba(6,6,8,.7) 100%)}
+
+.tag-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--aqua);
+  border:0.5px solid rgba(0,196,220,0.3);
+  padding:.45rem 1.1rem;
+  margin-bottom:2rem;
+  opacity:0;animation:fadeUp .9s .15s ease forwards;
+}
+.tag-pill-dot{width:5px;height:5px;border-radius:50%;background:var(--aqua);animation:pulse 2s ease-in-out infinite}
+
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(90px,15vw,172px);
+  letter-spacing:.04em;line-height:.88;
+  color:var(--white);
+  margin-bottom:0;
+  opacity:0;animation:fadeUp .9s .3s ease forwards;
+  position:relative;
+}
+.hero-title-outline{
+  display:block;
+  -webkit-text-stroke:1px rgba(245,245,243,0.18);
+  color:transparent;
+  font-size:clamp(70px,11vw,130px);
+  letter-spacing:.08em;
+  margin-top:-.1em;
+}
+.hero-rule{
+  width:40px;height:1px;
+  background:var(--aqua);
+  margin:2rem auto;
+  opacity:0;animation:fadeUp .9s .45s ease forwards;
+}
+.hero-sub{
+  font-size:clamp(14px,1.6vw,16px);font-weight:200;
+  color:rgba(240,240,238,.5);max-width:480px;
+  line-height:1.9;margin-bottom:2.75rem;
+  opacity:0;animation:fadeUp .9s .55s ease forwards;
+}
+.hero-sub strong{color:rgba(240,240,238,.88);font-weight:400}
+.hero-actions{
+  display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;
+  opacity:0;animation:fadeUp .9s .7s ease forwards;
+}
+.btn-primary{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--black);background:var(--aqua);
+  padding:1rem 2.8rem;border:none;cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform .2s,opacity .2s;
+}
+.btn-primary::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.15);opacity:0;transition:opacity .2s}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-primary:hover::after{opacity:1}
+.btn-ghost{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:300;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted2);background:transparent;
+  padding:1rem 2.8rem;
+  border:0.5px solid rgba(255,255,255,0.12);cursor:pointer;
+  transition:border-color .2s,color .2s,transform .2s;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,.35);color:var(--white);transform:translateY(-2px)}
+
+.hero-prod-strip{
+  display:flex;gap:2.5rem;align-items:center;justify-content:center;
+  margin-top:4.5rem;
+  opacity:0;animation:fadeUp .9s .85s ease forwards;
+}
+.prod-item{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,240,238,.28);display:flex;align-items:center;gap:7px}
+.prod-dot{width:4px;height:4px;border-radius:50%;background:var(--aqua);opacity:.7}
+
+.hero-scroll-ind{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  opacity:0;animation:fadeUp .9s 1.1s ease forwards;
+}
+.scroll-track{width:1px;height:48px;background:rgba(0,196,220,0.2);position:relative;overflow:hidden}
+.scroll-fill{position:absolute;top:-100%;left:0;width:1px;height:100%;background:var(--aqua);animation:scrollFill 2s ease-in-out infinite}
+.scroll-txt{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+/* ─── STATS ─── */
+.stats-bar{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:0.5px solid rgba(255,255,255,0.06);
+  border-bottom:0.5px solid rgba(255,255,255,0.06);
+  background:rgba(14,14,16,0.8);
+}
+.stat-item{
+  padding:2.25rem 1.5rem;text-align:center;
+  border-right:0.5px solid rgba(255,255,255,0.06);
+  transition:background .3s;
+}
+.stat-item:last-child{border-right:none}
+.stat-item:hover{background:rgba(0,196,220,0.04)}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.02em;color:var(--aqua);line-height:1;margin-bottom:5px}
+.stat-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* ─── SECTIONS ─── */
+section{padding:7rem 4rem;position:relative;z-index:1}
+.container{max-width:1140px;margin:0 auto}
+.eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--aqua);margin-bottom:1rem;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--aqua);opacity:.6}
+.section-h{font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,5vw,60px);letter-spacing:.04em;color:var(--white);line-height:1.05;margin-bottom:1.25rem}
+.section-p{font-size:14px;font-weight:200;color:rgba(240,240,238,.45);line-height:1.9;max-width:500px}
+
+/* ─── PROBLEM ─── */
+#problem{background:var(--dark)}
+.problem-layout{display:grid;grid-template-columns:1fr 1.1fr;gap:6rem;align-items:center}
+.problem-stack{display:flex;flex-direction:column;gap:2px}
+.prob-card{
+  padding:1.75rem 1.75rem;
+  background:var(--dark2);
+  border-left:2px solid transparent;
+  transition:border-color .3s,background .3s;
+  position:relative;
+}
+.prob-card:hover{border-left-color:var(--aqua);background:var(--dark3)}
+.prob-num{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.03em;color:rgba(0,196,220,0.2);line-height:1;margin-bottom:6px;transition:color .3s}
+.prob-card:hover .prob-num{color:var(--aqua)}
+.prob-title{font-size:14px;font-weight:500;color:var(--light);margin-bottom:5px}
+.prob-desc{font-size:13px;font-weight:200;color:var(--muted2);line-height:1.7}
+
+/* ─── PRODUCTS ─── */
+#products{background:var(--black)}
+.prod-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3.5rem}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,0.05)}
+.prod-card{
+  background:var(--black);padding:3rem 2.25rem 2.5rem;
+  position:relative;overflow:hidden;
+  transition:background .35s;
+}
+.prod-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,var(--aqua),transparent);
+  transform:scaleX(0);transform-origin:center;
+  transition:transform .5s ease;
+}
+.prod-card:hover{background:var(--dark2)}
+.prod-card:hover::after{transform:scaleX(1)}
+.prod-icon-wrap{
+  width:52px;height:52px;
+  border:0.5px solid rgba(0,196,220,0.2);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:2rem;
+  transition:border-color .3s,background .3s;
+}
+.prod-card:hover .prod-icon-wrap{border-color:rgba(0,196,220,0.5);background:rgba(0,196,220,0.06)}
+.prod-icon-wrap svg{width:22px;height:22px;stroke:var(--aqua);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.prod-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--aqua);margin-bottom:.6rem;opacity:.8}
+.prod-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.06em;color:var(--white);line-height:1;margin-bottom:1rem}
+.prod-desc{font-size:13px;font-weight:200;color:var(--muted2);line-height:1.75;margin-bottom:1.75rem}
+.prod-feats{list-style:none;display:flex;flex-direction:column;gap:9px}
+.prod-feats li{font-size:12px;font-weight:300;color:var(--muted);display:flex;align-items:center;gap:9px}
+.prod-feats li::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--aqua);flex-shrink:0;opacity:.7}
+
+/* ─── PROMISE ─── */
+#promise{background:var(--dark);text-align:center}
+.promise-q{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,4.5vw,54px);letter-spacing:.04em;color:var(--white);line-height:1.15;margin-bottom:1.5rem}
+.promise-q span{color:var(--aqua)}
+.promise-p{font-size:14px;font-weight:200;color:rgba(240,240,238,.45);line-height:1.9;max-width:620px;margin:0 auto 4rem}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,0.05);text-align:left}
+.pillar{background:var(--dark2);padding:2rem 1.75rem}
+.pillar-num{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:.02em;color:rgba(0,196,220,0.1);line-height:1;margin-bottom:.6rem}
+.pillar-title{font-size:14px;font-weight:500;color:var(--light);margin-bottom:.5rem}
+.pillar-desc{font-size:12px;font-weight:200;color:var(--muted);line-height:1.7}
+
+/* ─── AUDIENCE ─── */
+#audience{background:var(--black)}
+.aud-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3.5rem}
+.aud-card{
+  border:0.5px solid rgba(255,255,255,0.07);
+  padding:2.25rem 1.75rem;
+  transition:border-color .3s,background .3s;
+  background:transparent;
+}
+.aud-card:hover{border-color:rgba(0,196,220,0.25);background:rgba(0,196,220,0.03)}
+.aud-badge{
+  display:inline-block;font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(0,196,220,0.8);background:rgba(0,196,220,0.1);
+  padding:4px 12px;margin-bottom:1.25rem;
+}
+.aud-title{font-size:15px;font-weight:500;color:var(--white);margin-bottom:.7rem}
+.aud-desc{font-size:13px;font-weight:200;color:var(--muted2);line-height:1.7}
+
+/* ─── WHY ─── */
+#why{background:var(--dark)}
+.why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(255,255,255,0.05);margin-top:3.5rem}
+.why-item{background:var(--dark);padding:2.75rem 2.25rem;transition:background .3s}
+.why-item:hover{background:var(--dark2)}
+.why-num{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:.02em;color:rgba(0,196,220,0.08);line-height:1;margin-bottom:.75rem}
+.why-title{font-size:15px;font-weight:500;color:var(--light);margin-bottom:.65rem}
+.why-desc{font-size:13px;font-weight:200;color:var(--muted2);line-height:1.75}
+
+/* ─── MANIFESTO ─── */
+#manifesto{
+  background:var(--black);
+  padding:9rem 4rem;text-align:center;
+  position:relative;overflow:hidden;z-index:1;
+}
+.manifesto-bg{position:absolute;inset:0;pointer-events:none}
+.m-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(28px,5vw,54px);letter-spacing:.06em;line-height:1.2;
+  color:rgba(240,240,238,.07);
+  transition:color .8s ease;
+}
+.m-line.lit{color:var(--white)}
+.m-line.lit-aqua{color:var(--aqua);font-size:clamp(20px,3vw,34px)}
+.m-sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:2.5rem}
+
+/* ─── WAITLIST ─── */
+#waitlist{background:var(--dark);padding:8rem 4rem;text-align:center}
+.wl-inner{max-width:580px;margin:0 auto}
+.wl-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,5.5vw,62px);letter-spacing:.05em;color:var(--white);margin-bottom:1rem}
+.wl-title span{color:var(--aqua)}
+.wl-desc{font-size:14px;font-weight:200;color:rgba(240,240,238,.45);line-height:1.9;margin-bottom:3rem}
+.wl-form{display:flex;max-width:460px;margin:0 auto 1rem}
+.wl-input{
+  flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;
+  color:var(--white);background:rgba(255,255,255,0.05);
+  border:0.5px solid rgba(255,255,255,0.1);border-right:none;
+  padding:1.05rem 1.25rem;outline:none;
+  transition:border-color .2s,background .2s;
+}
+.wl-input::placeholder{color:var(--muted)}
+.wl-input:focus{border-color:rgba(0,196,220,.5);background:rgba(0,196,220,.04)}
+.wl-btn{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--black);background:var(--aqua);
+  padding:1.05rem 1.75rem;border:none;cursor:pointer;
+  transition:opacity .2s;white-space:nowrap;
+}
+.wl-btn:hover{opacity:.88}
+.wl-note{font-size:11px;letter-spacing:.05em;color:var(--muted)}
+.wl-success{
+  display:none;font-size:14px;font-weight:300;color:var(--aqua);
+  padding:1.05rem;border:0.5px solid rgba(0,196,220,.25);
+  max-width:460px;margin:0 auto 1rem;letter-spacing:.04em;
+}
+
+/* ─── FOOTER ─── */
+footer{
+  position:relative;z-index:1;
+  background:var(--black);
+  border-top:0.5px solid rgba(255,255,255,0.06);
+  padding:2.25rem 4rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ft-logo{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.18em;color:var(--white)}
+.ft-logo em{color:var(--aqua);font-style:normal}
+.ft-tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ft-copy{font-size:11px;color:rgba(255,255,255,.15)}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+@keyframes scrollFill{0%{top:-100%}50%{top:100%}100%{top:100%}}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .75s ease,transform .75s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  nav{padding:1rem 1.75rem}
+  .nav-links{display:none}
+  section{padding:5rem 1.75rem}
+  .problem-layout{grid-template-columns:1fr;gap:3rem}
+  .products-grid,.pillars,.why-grid{grid-template-columns:1fr}
+  .aud-grid{grid-template-columns:1fr}
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  footer{flex-direction:column;gap:1rem;text-align:center;padding:2rem 1.75rem}
+  .wl-form{flex-direction:column}
+  .wl-input{border-right:0.5px solid rgba(255,255,255,.1);border-bottom:none}
+  .prod-header{flex-direction:column;align-items:flex-start;gap:.75rem}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- INTRO -->
+<div id="intro">
+  <canvas id="drop-canvas"></canvas>
+  <div class="intro-phrase" id="intro-phrase">
+    <div class="phrase-main">Tu cuerpo es<br><span>60% agua.</span><br>Tratalo como tal.</div>
+    <div class="phrase-sub">Recover · Hydrate · Move better</div>
+  </div>
+  <button class="intro-skip" onclick="skipIntro()">Saltar →</button>
+</div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a href="#" class="nav-logo">REV<em>I</em>VE</a>
+  <ul class="nav-links">
+    <li><a href="#products">Productos</a></li>
+    <li><a href="#promise">Promesa</a></li>
+    <li><a href="#audience">Para quién</a></li>
+    <li><a href="#why">Por qué</a></li>
+  </ul>
+  <button class="nav-cta" onclick="scroll2('waitlist')">Unirse a la lista</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-noise"></div>
+  <div class="hero-vignette"></div>
+
+  <div class="tag-pill"><span class="tag-pill-dot"></span>Recovery tools for real life</div>
+
+  <h1 class="hero-title">
+    REVIVE
+    <span class="hero-title-outline">REVIVE</span>
+  </h1>
+
+  <div class="hero-rule"></div>
+
+  <p class="hero-sub">
+    La recuperación es <strong>tan importante como el entrenamiento.</strong><br>
+    Herramientas simples y efectivas para que tu cuerpo rinda más,<br>descanse mejor y se mueva sin límites — todos los días.
+  </p>
+
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="scroll2('waitlist')">Quiero ser el primero</button>
+    <button class="btn-ghost" onclick="scroll2('products')">Ver el ecosistema</button>
+  </div>
+
+  <div class="hero-prod-strip">
+    <span class="prod-item"><span class="prod-dot"></span>Smart Bottle</span>
+    <span class="prod-item"><span class="prod-dot"></span>Massage Gun</span>
+    <span class="prod-item"><span class="prod-dot"></span>Foam Roller</span>
+  </div>
+
+  <div class="hero-scroll-ind">
+    <div class="scroll-track"><div class="scroll-fill"></div></div>
+    <span class="scroll-txt">Scroll</span>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item reveal"><div class="stat-num">3</div><div class="stat-label">Productos esenciales</div></div>
+  <div class="stat-item reveal d1"><div class="stat-num">1</div><div class="stat-label">Sistema integrado</div></div>
+  <div class="stat-item reveal d2"><div class="stat-num">∞</div><div class="stat-label">Hábitos que cambian vidas</div></div>
+  <div class="stat-item reveal d3"><div class="stat-num">0</div><div class="stat-label">Excusas para no empezar</div></div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <div class="problem-layout">
+      <div>
+        <p class="eyebrow reveal">El problema</p>
+        <h2 class="section-h reveal d1">El recovery es<br>el eslabón perdido</h2>
+        <p class="section-p reveal d2">Las personas activas invierten tiempo y dinero en entrenar, pero ignoran la parte donde ocurre la mejora real. No por negligencia — sino porque nadie les dio las herramientas correctas.</p>
+      </div>
+      <div class="problem-stack reveal d1">
+        <div class="prob-card">
+          <div class="prob-num">01</div>
+          <div class="prob-title">La recuperación está olvidada</div>
+          <div class="prob-desc">Entrenás duro, pero no recuperás bien. El cuerpo se adapta durante el descanso, no durante el esfuerzo.</div>
+        </div>
+        <div class="prob-card">
+          <div class="prob-num">02</div>
+          <div class="prob-title">La hidratación es invisible</div>
+          <div class="prob-desc">La mayoría no sabe cuánta agua toma al día. Sin registro, el hábito no existe y el rendimiento cae sin que lo notes.</div>
+        </div>
+        <div class="prob-card">
+          <div class="prob-num">03</div>
+          <div class="prob-title">Las herramientas son para élite</div>
+          <div class="prob-desc">Lo que existe es caro, complejo o pensado para atletas profesionales. No para la vida cotidiana del común de las personas.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="container">
+    <div class="prod-header">
+      <div>
+        <p class="eyebrow reveal">El ecosistema Revive</p>
+        <h2 class="section-h reveal d1">Tres herramientas.<br>Un solo sistema.</h2>
+      </div>
+    </div>
+    <div class="products-grid">
+      <div class="prod-card reveal">
+        <div class="prod-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/><path d="M12 15v-4"/><path d="M10 13l2 2 2-2"/></svg>
+        </div>
+        <div class="prod-tag">Hidratación</div>
+        <h3 class="prod-name">Smart Bottle</h3>
+        <p class="prod-desc">El vaso inteligente que registra exactamente cuánta agua tomás por día. Porque lo que no se mide, no se mejora.</p>
+        <ul class="prod-feats">
+          <li>Medición en tiempo real</li>
+          <li>Marcadores de progreso diario</li>
+          <li>Diseño minimalista premium</li>
+          <li>Libre de BPA, apto deporte</li>
+        </ul>
+      </div>
+      <div class="prod-card reveal d1">
+        <div class="prod-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M14.5 4l5.5 5.5-11 11L3 21l1.5-6L14.5 4z"/><path d="M17 7l-1.5-1.5"/><path d="M6 16l2 2"/></svg>
+        </div>
+        <div class="prod-tag">Recuperación muscular</div>
+        <h3 class="prod-name">Massage Gun</h3>
+        <p class="prod-desc">Pistola de percusión profesional para liberar tensión muscular y acelerar la recuperación después del esfuerzo.</p>
+        <ul class="prod-feats">
+          <li>Múltiples niveles de intensidad</li>
+          <li>Cabezales intercambiables</li>
+          <li>Motor silencioso y potente</li>
+          <li>Batería de larga duración</li>
+        </ul>
+      </div>
+      <div class="prod-card reveal d2">
+        <div class="prod-icon-wrap">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/><path d="M8.5 5.5C9.5 6.8 10.7 7.5 12 7.5s2.5-.7 3.5-2"/><path d="M8.5 18.5C9.5 17.2 10.7 16.5 12 16.5s2.5.7 3.5 2"/></svg>
+        </div>
+        <div class="prod-tag">Movilidad</div>
+        <h3 class="prod-name">Foam Roller</h3>
+        <p class="prod-desc">Rolos de alta densidad para liberar la fascia, mejorar la circulación y ganar rango de movimiento de forma progresiva.</p>
+        <ul class="prod-feats">
+          <li>Alta densidad duradera</li>
+          <li>Superficie texturada de precisión</li>
+          <li>Guía de rutinas incluida</li>
+          <li>Disponible en varios tamaños</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMISE -->
+<section id="promise">
+  <div class="container" style="text-align:center">
+    <p class="eyebrow reveal" style="justify-content:center">Nuestra promesa</p>
+    <h2 class="promise-q reveal d1">Tu recuperación es <span>tan importante</span><br>como tu entrenamiento.</h2>
+    <p class="promise-p reveal d2">Revive pone en tus manos las tres herramientas esenciales del bienestar diario — hidratación medible, liberación muscular profunda y movilidad activa — en un ecosistema diseñado para personas reales que quieren sentirse y moverse mejor, todos los días.</p>
+    <div class="pillars">
+      <div class="pillar reveal">
+        <div class="pillar-num">01</div>
+        <div class="pillar-title">Hidratación consciente</div>
+        <div class="pillar-desc">Sabés exactamente cuánta agua tomás. El hábito se construye con visibilidad y datos reales.</div>
+      </div>
+      <div class="pillar reveal d1">
+        <div class="pillar-num">02</div>
+        <div class="pillar-title">Recuperación muscular</div>
+        <div class="pillar-desc">La pistola de masaje acelera la recuperación y reduce el dolor post-esfuerzo de forma efectiva.</div>
+      </div>
+      <div class="pillar reveal d2">
+        <div class="pillar-num">03</div>
+        <div class="pillar-title">Movilidad activa</div>
+        <div class="pillar-desc">Los rolos liberan la fascia y mejoran el rango de movimiento de forma progresiva y sostenida.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE -->
+<section id="audience">
+  <div class="container">
+    <p class="eyebrow reveal">Para quién es Revive</p>
+    <h2 class="section-h reveal d1">No solo para atletas.<br>Para cualquiera que cuide su cuerpo.</h2>
+    <div class="aud-grid">
+      <div class="aud-card reveal d1">
+        <span class="aud-badge">Primario</span>
+        <h3 class="aud-title">Activos sin rutina de recovery</h3>
+        <p class="aud-desc">Van al gym, corren o practican deporte amateur. Saben que deberían recuperarse mejor, pero no saben cómo ni con qué.</p>
+      </div>
+      <div class="aud-card reveal d2">
+        <span class="aud-badge">Secundario</span>
+        <h3 class="aud-title">Personas con vida sedentaria</h3>
+        <p class="aud-desc">Trabajo de escritorio, tensión acumulada. Buscan bienestar general sin comprometerse con un régimen deportivo exigente.</p>
+      </div>
+      <div class="aud-card reveal d3">
+        <span class="aud-badge">Terciario</span>
+        <h3 class="aud-title">Atletas recreativos</h3>
+        <p class="aud-desc">Runners, ciclistas, nadadores. Ya conocen el recovery pero buscan opciones accesibles y de buena calidad.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="container">
+    <p class="eyebrow reveal">Por qué elegirnos</p>
+    <h2 class="section-h reveal d1">Diferente desde adentro.</h2>
+    <div class="why-grid">
+      <div class="why-item reveal">
+        <div class="why-num">01</div>
+        <h3 class="why-title">Ecosistema, no productos sueltos</h3>
+        <p class="why-desc">Los tres productos se complementan y refuerzan la misma rutina de bienestar. No son objetos aislados — son un sistema que funciona junto.</p>
+      </div>
+      <div class="why-item reveal d1">
+        <div class="why-num">02</div>
+        <h3 class="why-title">Diseño sin excesos</h3>
+        <p class="why-desc">Productos limpios, estéticos y funcionales que da gusto tener en casa o llevar al gym. El diseño no es decorativo — es parte de la experiencia.</p>
+      </div>
+      <div class="why-item reveal d2">
+        <div class="why-num">03</div>
+        <h3 class="why-title">Accesible y premium a la vez</h3>
+        <p class="why-desc">Calidad real a un precio justo para el mercado latinoamericano. No necesitás gastar como un atleta de élite para recuperarte como uno.</p>
+      </div>
+      <div class="why-item reveal d3">
+        <div class="why-num">04</div>
+        <h3 class="why-title">Educación incluida</h3>
+        <p class="why-desc">Cada producto viene con guías simples de uso. No vendemos objetos — vendemos hábitos y resultados concretos para tu vida diaria.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section id="manifesto">
+  <canvas class="manifesto-bg" id="mani-canvas"></canvas>
+  <div class="container" style="position:relative;z-index:1">
+    <div class="m-line reveal" id="ml1">No somos una marca de deporte.</div>
+    <div class="m-line reveal d1" id="ml2">Somos una marca de bienestar real.</div>
+    <div class="m-line reveal d2" id="ml3">Para personas reales.</div>
+    <div class="m-line reveal d3" id="ml4">Con cuerpos reales.</div>
+    <div class="m-line lit-aqua reveal" style="transition-delay:.4s" id="ml5">Recover. Hydrate. Move better.</div>
+    <p class="m-sub reveal" style="transition-delay:.5s">Revive · 2025</p>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section id="waitlist">
+  <div class="wl-inner">
+    <p class="eyebrow reveal" style="justify-content:center">Próximamente</p>
+    <h2 class="wl-title reveal d1">Sé el <span>primero</span><br>en saberlo.</h2>
+    <p class="wl-desc reveal d2">Estamos terminando de preparar todo. Dejá tu mail y te avisamos antes que nadie cuando lancemos — con acceso anticipado y precio de early adopter.</p>
+    <div class="reveal d3">
+      <div class="wl-form" id="wf">
+        <input type="email" class="wl-input" id="wl-email" placeholder="tu@email.com">
+        <button class="wl-btn" onclick="submitWL()">Anotarme</button>
+      </div>
+      <div class="wl-success" id="ws">✓ &nbsp;Listo. Te escribimos cuando lancemos.</div>
+      <p class="wl-note">Sin spam. Solo cuando haya algo importante.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-logo">REV<em>I</em>VE</div>
+  <div class="ft-tag">Recover · Hydrate · Move better</div>
+  <div class="ft-copy">© 2025 Revive. Todos los derechos reservados.</div>
+</footer>
+
+<script>
+/* ── INTRO WATER DROP ── */
+(function(){
+  const intro = document.getElementById('intro')
+  const canvas = document.getElementById('drop-canvas')
+  const ctx = canvas.getContext('2d')
+  let W, H, raf
+  let phase = 'drop' // drop | splash | ripple | phrase | exit
+  let t = 0
+  let ripples = []
+  let splashParticles = []
+  let done = false
+
+  function resize(){
+    W = canvas.width = window.innerWidth
+    H = canvas.height = window.innerHeight
+  }
+  resize()
+  window.addEventListener('resize', resize)
+
+  const CX = () => W / 2
+  const CY = () => H / 2
+  const AQ = '#00C4DC'
+  const AQR = '0,196,220'
+
+  /* ── drop state ── */
+  let dropY = 0
+  let dropProgress = 0
+  const DROP_DURATION = 55 // frames to fall
+
+  /* ── ripple ── */
+  function addRipple(x, y, delay){
+    ripples.push({ x, y, r: 0, maxR: Math.min(W, H) * 0.55, alpha: 0.6, speed: 6 + Math.random()*3, delay, born: t })
+  }
+
+  /* ── splash particles ── */
+  function spawnSplash(x, y){
+    for(let i = 0; i < 28; i++){
+      const angle = -Math.PI + Math.random() * Math.PI
+      const speed = 2.5 + Math.random() * 6
+      splashParticles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2,
+        r: 1.5 + Math.random() * 3,
+        alpha: 0.7 + Math.random() * 0.3,
+        life: 0,
+        maxLife: 35 + Math.random() * 25
+      })
+    }
+  }
+
+  /* ── draw drop shape ── */
+  function drawDrop(x, y, size, alpha){
+    ctx.save()
+    ctx.globalAlpha = alpha
+    ctx.fillStyle = AQ
+    ctx.beginPath()
+    ctx.moveTo(x, y - size * 1.4)
+    ctx.bezierCurveTo(x + size * 0.6, y - size * 0.6, x + size, y + size * 0.3, x, y + size)
+    ctx.bezierCurveTo(x - size, y + size * 0.3, x - size * 0.6, y - size * 0.6, x, y - size * 1.4)
+    ctx.closePath()
+    ctx.fill()
+
+    // highlight
+    ctx.globalAlpha = alpha * 0.4
+    ctx.fillStyle = '#fff'
+    ctx.beginPath()
+    ctx.ellipse(x - size * 0.2, y - size * 0.4, size * 0.18, size * 0.3, -0.5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
+
+  let splashFrame = 0
+  let phraseShown = false
+  let exitFrame = 0
+
+  function loop(){
+    if(done) return
+    ctx.clearRect(0, 0, W, H)
+    t++
+
+    const cx = CX(), cy = CY()
+
+    if(phase === 'drop'){
+      dropProgress = Math.min(t / DROP_DURATION, 1)
+      // ease-in
+      const ease = dropProgress * dropProgress
+      dropY = -80 + (cy + 20) * ease
+      const size = 14 + dropProgress * 4
+      const alpha = 0.3 + dropProgress * 0.7
+
+      // trailing droplets
+      for(let i = 1; i <= 3; i++){
+        const trailY = dropY - i * 22 * dropProgress
+        if(trailY > -40){
+          drawDrop(cx, trailY, (size * 0.4) / i, alpha * 0.3 / i)
+        }
+      }
+      drawDrop(cx, dropY, size, alpha)
+
+      if(dropProgress >= 1){
+        phase = 'splash'
+        splashFrame = 0
+        spawnSplash(cx, cy + 20)
+        addRipple(cx, cy + 20, 0)
+        addRipple(cx, cy + 20, 8)
+        addRipple(cx, cy + 20, 18)
+      }
+    }
+
+    if(phase === 'splash' || phase === 'ripple' || phase === 'phrase'){
+      splashFrame++
+
+      // splash particles
+      splashParticles.forEach(p => {
+        p.life++
+        p.x += p.vx
+        p.y += p.vy
+        p.vy += 0.18 // gravity
+        const lt = p.life / p.maxLife
+        const a = p.alpha * (1 - lt)
+        ctx.save()
+        ctx.globalAlpha = a
+        ctx.fillStyle = AQ
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r * (1 - lt * 0.5), 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      })
+      splashParticles = splashParticles.filter(p => p.life < p.maxLife)
+
+      // impact flash
+      if(splashFrame < 8){
+        const flashA = (1 - splashFrame / 8) * 0.12
+        ctx.save()
+        ctx.globalAlpha = flashA
+        ctx.fillStyle = AQ
+        ctx.beginPath()
+        ctx.arc(cx, cy + 20, 60, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      }
+
+      // ripples
+      ripples.forEach(rip => {
+        const age = t - rip.born - rip.delay
+        if(age < 0) return
+        rip.r += rip.speed
+        rip.alpha = Math.max(0, 0.55 * (1 - rip.r / rip.maxR))
+        if(rip.r > rip.maxR) return
+        ctx.save()
+        ctx.strokeStyle = `rgba(${AQR},${rip.alpha})`
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.ellipse(rip.x, rip.y, rip.r, rip.r * 0.28, 0, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+      })
+      ripples = ripples.filter(r => r.r <= r.maxR)
+
+      if(splashFrame === 40 && !phraseShown){
+        phraseShown = true
+        document.getElementById('intro-phrase').classList.add('show')
+        phase = 'phrase'
+      }
+
+      if(phase === 'phrase' && splashFrame > 130){
+        phase = 'exit'
+        exitFrame = 0
+      }
+    }
+
+    if(phase === 'exit'){
+      exitFrame++
+      // fade out overlay with a white flash then dark
+      const alpha = Math.min(exitFrame / 40, 1)
+      ctx.save()
+      ctx.globalAlpha = alpha
+      ctx.fillStyle = '#060608'
+      ctx.fillRect(0, 0, W, H)
+      ctx.restore()
+      if(exitFrame >= 50){
+        done = true
+        finishIntro()
+        return
+      }
+    }
+
+    raf = requestAnimationFrame(loop)
+  }
+
+  loop()
+
+  function finishIntro(){
+    cancelAnimationFrame(raf)
+    document.getElementById('intro').classList.add('hide')
+    document.body.style.overflow = ''
+    setTimeout(() => {
+      document.getElementById('intro').style.display = 'none'
+    }, 1100)
+  }
+
+  window.skipIntro = function(){
+    done = true
+    cancelAnimationFrame(raf)
+    finishIntro()
+  }
+
+  document.body.style.overflow = 'hidden'
+})()
+
+/* ── SCROLL NAV ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>60)
+})
+
+/* ── SMOOTH SCROLL ── */
+function scroll2(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+
+/* ── REVEAL ── */
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')})
+},{threshold:.1})
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el))
+
+/* ── MANIFESTO LIT ── */
+const mro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      ['ml1','ml2','ml3','ml4','ml5'].forEach((id,i)=>{
+        setTimeout(()=>{
+          const el=document.getElementById(id)
+          if(el)el.classList.add('lit')
+        },i*180)
+      })
+    }
+  })
+},{threshold:.3})
+const mani=document.getElementById('manifesto')
+if(mani)mro.observe(mani)
+
+/* ── WAITLIST ── */
+function submitWL(){
+  const inp=document.getElementById('wl-email')
+  if(inp.value&&inp.value.includes('@')){
+    document.getElementById('wf').style.display='none'
+    document.getElementById('ws').style.display='block'
+  } else {
+    inp.style.borderColor='rgba(220,60,60,.5)'
+    setTimeout(()=>inp.style.borderColor='',1500)
+  }
+}
+document.getElementById('wl-email').addEventListener('keydown',e=>{if(e.key==='Enter')submitWL()})
+
+/* ── ANIMATED CANVAS BACKGROUND ── */
+(function(){
+  const canvas=document.getElementById('bg-canvas')
+  const ctx=canvas.getContext('2d')
+  let W,H,particles=[]
+
+  function resize(){
+    W=canvas.width=window.innerWidth
+    H=canvas.height=window.innerHeight
+  }
+  resize()
+  window.addEventListener('resize',()=>{resize();init()})
+
+  const AQUA='rgba(0,196,220,'
+  const COUNT=55
+
+  function rand(a,b){return a+(b-a)*Math.random()}
+
+  class Particle{
+    constructor(){this.reset(true)}
+    reset(rand){
+      this.x=rand?Math.random()*W:Math.random()*W
+      this.y=rand?Math.random()*H:H+10
+      this.r=rand(0.5,2.2)
+      this.vy=-rand(0.12,0.55)
+      this.vx=rand(-0.08,0.08)
+      this.alpha=rand(0.04,0.18)
+      this.life=0
+      this.maxLife=rand(200,600)
+    }
+    update(){
+      this.x+=this.vx
+      this.y+=this.vy
+      this.life++
+      if(this.life>this.maxLife||this.y<-10)this.reset(false)
+    }
+    draw(){
+      const t=this.life/this.maxLife
+      const a=this.alpha*Math.sin(t*Math.PI)
+      ctx.beginPath()
+      ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+      ctx.fillStyle=AQUA+a+')'
+      ctx.fill()
+    }
+  }
+
+  /* flowing lines */
+  class Line{
+    constructor(){this.reset(true)}
+    reset(r){
+      this.x=r?Math.random()*W:Math.random()*W
+      this.y=r?Math.random()*H:H+20
+      this.len=rand(40,130)
+      this.vy=-rand(0.08,0.3)
+      this.alpha=rand(0.02,0.07)
+      this.life=0
+      this.maxLife=rand(300,900)
+      this.w=rand(0.3,0.8)
+    }
+    update(){
+      this.x+=rand(-0.04,0.04)
+      this.y+=this.vy
+      this.life++
+      if(this.life>this.maxLife||this.y<-this.len-10)this.reset(false)
+    }
+    draw(){
+      const t=this.life/this.maxLife
+      const a=this.alpha*Math.sin(t*Math.PI)
+      const grad=ctx.createLinearGradient(this.x,this.y,this.x,this.y-this.len)
+      grad.addColorStop(0,AQUA+'0)')
+      grad.addColorStop(.4,AQUA+a+')')
+      grad.addColorStop(1,AQUA+'0)')
+      ctx.beginPath()
+      ctx.moveTo(this.x,this.y)
+      ctx.lineTo(this.x,this.y-this.len)
+      ctx.strokeStyle=grad
+      ctx.lineWidth=this.w
+      ctx.stroke()
+    }
+  }
+
+  const LINES=30
+
+  function init(){
+    particles=[]
+    for(let i=0;i<COUNT;i++)particles.push(new Particle())
+    for(let i=0;i<LINES;i++)particles.push(new Line())
+  }
+  init()
+
+  function loop(){
+    ctx.clearRect(0,0,W,H)
+    particles.forEach(p=>{p.update();p.draw()})
+    requestAnimationFrame(loop)
+  }
+  loop()
+})()
+</script>
+</body>
+</html>
